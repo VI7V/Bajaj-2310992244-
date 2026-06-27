@@ -8,21 +8,21 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/bfhl")
+@RequestMapping
 @CrossOrigin(origins = "*")
 public class BfhlController {
 
     @Autowired
     private BfhlService bfhlService;
 
-    @PostMapping
+    @PostMapping("/bfhl")
     public ResponseEntity<BfhlResponse> processData(@RequestBody BfhlRequest request) {
         BfhlResponse response = bfhlService.processData(request);
         return ResponseEntity.ok(response);
+    }
 
     @GetMapping("/health")
     public ResponseEntity<String> health() {
-         return ResponseEntity.ok("OK");
-}
+        return ResponseEntity.ok("OK");
     }
 }
