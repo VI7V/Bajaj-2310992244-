@@ -19,5 +19,10 @@ public class BfhlController {
     public ResponseEntity<BfhlResponse> processData(@RequestBody BfhlRequest request) {
         BfhlResponse response = bfhlService.processData(request);
         return ResponseEntity.ok(response);
+
+    @GetMapping("/health")
+    public ResponseEntity<String> health() {
+         return ResponseEntity.ok("OK");
+}
     }
 }
