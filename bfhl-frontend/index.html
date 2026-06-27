@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>BFHL API Tester</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', sans-serif; background: #0f172a; color: #e2e8f0; min-height: 100vh; padding: 2rem; }
+    h1 { text-align: center; color: #38bdf8; margin-bottom: 0.5rem; font-size: 1.8rem; }
+    p.sub { text-align: center; color: #94a3b8; margin-bottom: 2rem; font-size: 0.9rem; }
+    .card { background: #1e293b; border-radius: 12px; padding: 1.5rem; max-width: 800px; margin: 0 auto 1.5rem auto; }
+    label { display: block; margin-bottom: 0.4rem; color: #94a3b8; font-size: 0.85rem; }
+    input, textarea {
+      width: 100%; background: #0f172a; border: 1px solid #334155;
+      color: #e2e8f0; padding: 0.6rem 0.8rem; border-radius: 8px;
+      font-size: 0.95rem; margin-bottom: 1rem; outline: none;
+    }
+    input:focus, textarea:focus { border-color: #38bdf8; }
+    textarea { resize: vertical; min-height: 80px; font-family: monospace; }
+    button {
+      background: #38bdf8; color: #0f172a; border: none; padding: 0.7rem 1.5rem;
+      border-radius: 8px; font-size: 1rem; font-weight: 600; cursor: pointer; width: 100%;
+    }
+    button:hover { background: #0ea5e9; }
+    button:disabled { background: #475569; cursor: not-allowed; }
+    .result { display: none; }
+    .result.show { display: block; }
+    .tag { display: inline-block; background: #0f172a; border: 1px solid #334155; border-radius: 6px; padding: 0.2rem 0.6rem; margin: 0.2rem; font-size: 0.85rem; font-family: monospace; }
+    .tag.num { border-color: #38bdf8; color: #38bdf8; }
+    .tag.alpha { border-color: #a78bfa; color: #a78bfa; }
+    .tag.special { border-color: #fb923c; color: #fb923c; }
+    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+    .field-label { color: #64748b; font-size: 0.8rem; margin-bottom: 0.3rem; }
+    .field-val { color: #e2e8f0; font-weight: 600; }
+    .section-title { color: #38bdf8; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.5rem; margin-top: 1rem; text-transform: uppercase; letter-spacing: 0.05em; }
+    .error-box { background: #450a0a; border: 1px solid #ef4444; border-radius: 8px; padding: 1rem; color: #fca5a5; }
+    .badge-success { display: inline-block; background: #14532d; color: #86efac; border-radius: 20px; padding: 0.2rem 0.8rem; font-size: 0.8rem; font-weight: 600; }
+    .concat-val { font-family: monospace; font-size: 1.1rem; color: #fde68a; font-weight: 700; }
+    .sum-val { font-family: monospace; font-size: 1.1rem; color: #86efac; font-weight: 700; }
+    .loading { text-align: center; color: #38bdf8; padding: 1rem; }
+    pre.raw { background: #0f172a; border: 1px solid #334155; border-radius: 8px; padding: 1rem; font-size: 0.78rem; overflow-x: auto; color: #94a3b8; margin-top: 1rem; }
+  </style>
+</head>
+<body>
+  <h1>🔷 BFHL API Tester</h1>
+  <p class="sub">Vishav Ghai • 2310992244 • Chitkara University</p>
+
+  <div class="card">
+    <label>API Endpoint</label>
+    <input type="text" id="apiUrl" placeholder="https://your-api.onrender.com/bfhl" />
+
+    <label>Input Array (comma-separated)</label>
+    <input type="text" id="inputData" placeholder='a, 1, 334, 4, R, $' value="a, 1, 334, 4, R, $" />
+
+    <button id="submitBtn" onclick="callApi()">Send Request</button>
+  </div>
+
+  <div class="card result" id="resultCard">
+    <div id="resultContent"></div>
+  </div>
+
+  <script>
+    async function callApi() {
+      const url = document.getElementById('apiUrl').value.trim();
+      const raw = document.getElementById('inputData').value;
+      const btn = document.getElementById('submitBtn');
+      const resultCard = document.getElementById('resultCard');
+      const resultContent = document.getElementById('resultContent');
+
+      if (!url) { alert('Enter API URL first'); return; }
+
+      const data = raw.split(',').map(s => s.trim()).filter(s => s.length > 0);
+
+      btn.disabled = true;
+      btn.textContent = 'Sending...';
+      resultCard.className = 'card result show';
+      resultContent.innerHTML = '<div class="loading">⏳ Calling API...</div>';
+
+      try {
+        const res = await fetch(url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ data })
+        });
+
+        const json = await res.json();
+
+        if (!json.is_success) {
+          resultContent.innerHTML = `<div class="error-box">❌ API returned is_success: false<br>${json.error || ''}</div>`;
+          return;
+        }
+
+        const tags = (arr, cls) => arr && arr.length
+          ? arr.map(v => `<span class="tag ${cls}">${v}</span>`).join('')
+          : '<span style="color:#475569">empty</span>';
+
+        resultContent.innerHTML = `
+          <span class="badge-success">✅ is_success: true</span>
+          <div class="row" style="margin-top:1rem">
+            <div>
+              <div class="field-label">user_id</div>
+              <div class="field-val">${json.user_id}</div>
+            </div>
+            <div>
+              <div class="field-label">roll_number</div>
+              <div class="field-val">${json.roll_number}</div>
+            </div>
+            <div>
+              <div class="field-label">email</div>
+              <div class="field-val" style="font-size:0.85rem">${json.email}</div>
+            </div>
+          </div>
+
+          <div class="section-title">Numbers</div>
+          <div><span style="color:#64748b;font-size:0.8rem">Even: </span>${tags(json.even_numbers, 'num')}</div>
+          <div style="margin-top:0.4rem"><span style="color:#64748b;font-size:0.8rem">Odd: </span>${tags(json.odd_numbers, 'num')}</div>
+
+          <div class="section-title">Alphabets</div>
+          ${tags(json.alphabets, 'alpha')}
+
+          <div class="section-title">Special Characters</div>
+          ${tags(json.special_characters, 'special')}
+
+          <div class="section-title">Computed</div>
+          <div class="row">
+            <div>
+              <div class="field-label">Sum</div>
+              <div class="sum-val">${json.sum}</div>
+            </div>
+            <div>
+              <div class="field-label">Concat String</div>
+              <div class="concat-val">${json.concat_string}</div>
+            </div>
+          </div>
+
+          <details style="margin-top:1rem">
+            <summary style="cursor:pointer;color:#64748b;font-size:0.8rem">Raw JSON response</summary>
+            <pre class="raw">${JSON.stringify(json, null, 2)}</pre>
+          </details>
+        `;
+      } catch (err) {
+        resultContent.innerHTML = `<div class="error-box">❌ Request failed: ${err.message}<br><br>Check: CORS enabled? URL correct? API running?</div>`;
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Send Request';
+      }
+    }
+
+    // Allow Enter key
+    document.getElementById('inputData').addEventListener('keydown', e => {
+      if (e.key === 'Enter') callApi();
+    });
+  </script>
+</body>
+</html>
